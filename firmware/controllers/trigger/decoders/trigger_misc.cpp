@@ -93,8 +93,8 @@ void configureFordFoxbodyPip(TriggerWaveform * s) {
     // Based on measured fall-to-fall ratios:
     // short/normal ≈ 0.85
     // long/normal  ≈ 1.13
-    s->setTriggerSynchronizationGap(0.90);
-    s->setSecondTriggerSynchronizationGap(1.08);
+    s->setTriggerSynchronizationGap(0.75);
+    s->setSecondTriggerSynchronizationGap(1.14);
 
     constexpr size_t count = 8;
     const angle_t oneCylinder = s->getCycleDuration() / count; // 720 / 8 = 90
