@@ -56,25 +56,30 @@ void configureTriTach(TriggerWaveform * s) {
  * based on https://www.w8ji.com/distributor_stabbing.htm
  */
 void configureFordPip(TriggerWaveform * s) {
-    s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Rise);
+        // Stock Ford Signature PIP: signature is visible in falling-edge timing.
+    s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Fall);
 
-	s->tdcPosition = 662.5;
+    // Leave this alone until sync is solid. Then calibrate with timing light.
+    s->tdcPosition = 662.5;
 
-	s->setTriggerSynchronizationGap(0.90);
-	s->setSecondTriggerSynchronizationGap(1.08);
-	/**
-	 * sensor is mounted on distributor but trigger shape is defined in engine cycle angles
-	 */
-	int oneCylinder = s->getCycleDuration() / 8;
+    // Based on measured fall-to-fall ratios:
+    // short/normal ≈ 0.85
+    // long/normal  ≈ 1.13
+    s->setTriggerSynchronizationGap(0.90);
+    s->setSecondTriggerSynchronizationGap(1.08);
 
-	s->addEventAngle(oneCylinder * 0.75, TriggerValue::RISE);
-	s->addEventAngle(oneCylinder, TriggerValue::FALL);
+    constexpr size_t count = 8;
+    const angle_t oneCylinder = s->getCycleDuration() / count; // 720 / 8 = 90
 
+    // Observed pattern:
+    // normal rise spacing, one early fall creating the signature.
+    s->addEventAngle(oneCylinder * 0.5,  TriggerValue::RISE); // 45°
+    s->addEventAngle(oneCylinder * 0.875, TriggerValue::FALL); // 76.5°
 
-	for (int i = 2;i<=8;i++) {
-		s->addEventAngle(oneCylinder * (i - 0.5), TriggerValue::RISE);
-		s->addEventAngle(oneCylinder * i, TriggerValue::FALL);
-	}
+    for (size_t i = 2; i <= count; i++) {
+        s->addEventAngle(oneCylinder * (i - 0.5), TriggerValue::RISE);
+        s->addEventAngle(oneCylinder * i,         TriggerValue::FALL);
+    }
 
 }
 
