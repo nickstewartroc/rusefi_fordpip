@@ -489,10 +489,6 @@ void TriggerWaveform::initializeTriggerWaveform(operation_mode_e triggerOperatio
 	case trigger_type_e::TT_FORD_TFI_PIP:
 		configureFordPip(this);
 		break;
-		
-	case trigger_type_e::TT_FORD_FOXBODY_PIP:
-		configureFordFoxbodyPip(this);
-		break;
 
 	case trigger_type_e::TT_FORD_ST170:
 		configureFordST170(this);
@@ -841,8 +837,11 @@ void TriggerWaveform::initializeTriggerWaveform(operation_mode_e triggerOperatio
 	case trigger_type_e::TT_JEEPRENIX_66_2_2_2:
 		initializeJeepRenix66_2_2(this);
 		break;
-
-	case trigger_type_e::TT_UNUSED_95:
+	
+	case trigger_type_e::TT_FORD_FOXBODY_PIP:
+		configureFordFoxbodyPip(this);
+		break;
+		
 	case trigger_type_e::TT_UNUSED_96:
 	case trigger_type_e::TT_SUBARU_7_6_CRANK:
 		initializeSubaru7_6_crankOnly(this);
