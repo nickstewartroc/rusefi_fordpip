@@ -56,25 +56,31 @@ void configureTriTach(TriggerWaveform * s) {
  * based on https://www.w8ji.com/distributor_stabbing.htm
  */
 void configureFordPip(TriggerWaveform * s) {
-	s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Rise);
+    s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Rise);
 
-	s->tdcPosition = 662.5;
+    // Keep this same for first test; calibrate later with timing light.
+    s->tdcPosition = 662.5;
 
-	s->setTriggerSynchronizationGap(0.66);
-	s->setSecondTriggerSynchronizationGap(1.25);
-	/**
-	 * sensor is mounted on distributor but trigger shape is defined in engine cycle angles
-	 */
-	int oneCylinder = s->getCycleDuration() / 8;
+    // Your logs show short/normal ~0.70 and long/normal ~1.27.
+    // Make thresholds wide enough to catch that.
+    s->setTriggerSynchronizationGap(0.75);
+    s->setSecondTriggerSynchronizationGap(1.20);
 
-	s->addEventAngle(oneCylinder * 0.75, TriggerValue::RISE);
-	s->addEventAngle(oneCylinder, TriggerValue::FALL);
+    const int count = 8;
+    const angle_t oneCylinder = s->getCycleDuration() / count; // 720 / 8 = 90
 
+    // Observed stock TFI / Signature PIP behavior:
+    // rising edges are evenly spaced, special falling edge occurs early.
 
-	for (int i = 2;i<=8;i++) {
-		s->addEventAngle(oneCylinder * (i - 0.5), TriggerValue::RISE);
-		s->addEventAngle(oneCylinder * i, TriggerValue::FALL);
-	}
+    // Special short-high pulse:
+    s->addEventAngle(oneCylinder * 0.5,  TriggerValue::RISE); // 45 deg
+    s->addEventAngle(oneCylinder * 0.85, TriggerValue::FALL); // ~76.5 deg
+
+    // Remaining seven normal pulses:
+    for (int i = 2; i <= count; i++) {
+        s->addEventAngle(oneCylinder * (i - 0.5), TriggerValue::RISE);
+        s->addEventAngle(oneCylinder * i,         TriggerValue::FALL);
+    }
 
 }
 
