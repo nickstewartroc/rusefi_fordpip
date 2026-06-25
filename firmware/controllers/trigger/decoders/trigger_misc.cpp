@@ -56,58 +56,150 @@ void configureTriTach(TriggerWaveform * s) {
  * based on https://www.w8ji.com/distributor_stabbing.htm
  */
 void configureFordPip(TriggerWaveform * s) {
-        // Stock Ford Signature PIP: signature is visible in falling-edge timing.
-    s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Fall);
+    	/*
+	 * Observed stock Ford 5.0 TFI Signature PIP pattern.
+	 *
+	 * Distributor-mounted PIP sensor:
+	 * - 8 pulses per distributor revolution
+	 * - 1 distributor revolution = 720 crank degrees
+	 * - Normal pulse high width ~= 45 crank degrees
+	 * - Normal low width ~= 45 crank degrees
+	 * - Signature pulse high width ~= 31.5 crank degrees
+	 * - Long low gap after signature pulse ~= 58.5 crank degrees
+	 *
+	 * This shape is rotated so the signature pulse FALL is at 720 degrees.
+	 * That matches the EpicEFI Universal Crank table that got closest:
+	 *
+	 * 360-degree table:
+	 *   Rise: 29.25, 74.25, 119.25, 164.25, 209.25, 254.25, 299.25, 344.25
+	 *   Fall: 51.75, 96.75, 141.75, 186.75, 231.75, 276.75, 321.75, 360
+	 *
+	 * Converted to 720 crank degrees by multiplying by 2.
+	 */
 
-    // Leave this alone until sync is solid. Then calibrate with timing light.
-    s->tdcPosition = 662.5;
+	s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Both);
 
-    // Based on measured fall-to-fall ratios:
-    // short/normal ≈ 0.85
-    // long/normal  ≈ 1.13
-    s->setTriggerSynchronizationGap(0.90);
-    s->setSecondTriggerSynchronizationGap(1.08);
+	/*
+	 * The useful sync event is the RISE after:
+	 *   short high signature pulse -> long low gap -> RISE
+	 *
+	 * Observed ratio from your logs:
+	 *   long low / short high ~= 1.85
+	 *
+	 * Start with a reasonably wide window.
+	 */
+	s->setTriggerSynchronizationGap2(1.60f, 2.10f);
 
-    constexpr size_t count = 8;
-    const angle_t oneCylinder = s->getCycleDuration() / count; // 720 / 8 = 90
+	/*
+	 * Starting value only. This affects timing alignment, not whether RPM syncs.
+	 * Once RPM is correct and stable, set fixed timing and adjust trigger offset
+	 * with a timing light.
+	 *
+	 * You can also temporarily keep the existing Ford PIP value if that worked
+	 * better for base timing:
+	 *   s->tdcPosition = 662.5f;
+	 */
+	s->tdcPosition = 0;
 
-    // Observed pattern:
-    // normal rise spacing, one early fall creating the signature.
-    s->addEventAngle(oneCylinder * 0.5,  TriggerValue::RISE); // 45°
-    s->addEventAngle(oneCylinder * 0.875, TriggerValue::FALL); // 76.5°
+	// Normal pulses
+	s->addEventAngle(58.5f,  TriggerValue::RISE);
+	s->addEventAngle(103.5f, TriggerValue::FALL);
 
-    for (size_t i = 2; i <= count; i++) {
-        s->addEventAngle(oneCylinder * (i - 0.5), TriggerValue::RISE);
-        s->addEventAngle(oneCylinder * i,         TriggerValue::FALL);
-    }
+	s->addEventAngle(148.5f, TriggerValue::RISE);
+	s->addEventAngle(193.5f, TriggerValue::FALL);
+
+	s->addEventAngle(238.5f, TriggerValue::RISE);
+	s->addEventAngle(283.5f, TriggerValue::FALL);
+
+	s->addEventAngle(328.5f, TriggerValue::RISE);
+	s->addEventAngle(373.5f, TriggerValue::FALL);
+
+	s->addEventAngle(418.5f, TriggerValue::RISE);
+	s->addEventAngle(463.5f, TriggerValue::FALL);
+
+	s->addEventAngle(508.5f, TriggerValue::RISE);
+	s->addEventAngle(553.5f, TriggerValue::FALL);
+
+	s->addEventAngle(598.5f, TriggerValue::RISE);
+	s->addEventAngle(643.5f, TriggerValue::FALL);
+
+	// Signature pulse: short high, then long low after wrap
+	s->addEventAngle(688.5f, TriggerValue::RISE);
+	s->addEventAngle(720.0f, TriggerValue::FALL);
 
 }
 
 void configureFordFoxbodyPip(TriggerWaveform * s) {
-	    // Stock Ford Signature PIP: signature is visible in falling-edge timing.
-    s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Fall);
+	/*
+	 * Observed stock Ford 5.0 TFI Signature PIP pattern.
+	 *
+	 * Distributor-mounted PIP sensor:
+	 * - 8 pulses per distributor revolution
+	 * - 1 distributor revolution = 720 crank degrees
+	 * - Normal pulse high width ~= 45 crank degrees
+	 * - Normal low width ~= 45 crank degrees
+	 * - Signature pulse high width ~= 31.5 crank degrees
+	 * - Long low gap after signature pulse ~= 58.5 crank degrees
+	 *
+	 * This shape is rotated so the signature pulse FALL is at 720 degrees.
+	 * That matches the EpicEFI Universal Crank table that got closest:
+	 *
+	 * 360-degree table:
+	 *   Rise: 29.25, 74.25, 119.25, 164.25, 209.25, 254.25, 299.25, 344.25
+	 *   Fall: 51.75, 96.75, 141.75, 186.75, 231.75, 276.75, 321.75, 360
+	 *
+	 * Converted to 720 crank degrees by multiplying by 2.
+	 */
 
-    // Leave this alone until sync is solid. Then calibrate with timing light.
-    s->tdcPosition = 662.5;
+	s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Rise);
 
-    // Based on measured fall-to-fall ratios:
-    // short/normal ≈ 0.85
-    // long/normal  ≈ 1.13
-    s->setTriggerSynchronizationGap(0.75);
-    s->setSecondTriggerSynchronizationGap(1.14);
+	/*
+	 * The useful sync event is the RISE after:
+	 *   short high signature pulse -> long low gap -> RISE
+	 *
+	 * Observed ratio from your logs:
+	 *   long low / short high ~= 1.85
+	 *
+	 * Start with a reasonably wide window.
+	 */
+	s->setTriggerSynchronizationGap2(1.60f, 2.10f);
 
-    constexpr size_t count = 8;
-    const angle_t oneCylinder = s->getCycleDuration() / count; // 720 / 8 = 90
+	/*
+	 * Starting value only. This affects timing alignment, not whether RPM syncs.
+	 * Once RPM is correct and stable, set fixed timing and adjust trigger offset
+	 * with a timing light.
+	 *
+	 * You can also temporarily keep the existing Ford PIP value if that worked
+	 * better for base timing:
+	 *   s->tdcPosition = 662.5f;
+	 */
+	s->tdcPosition = 0;
 
-    // Observed pattern:
-    // normal rise spacing, one early fall creating the signature.
-    s->addEventAngle(oneCylinder * 0.5,  TriggerValue::RISE); // 45°
-    s->addEventAngle(oneCylinder * 0.85, TriggerValue::FALL); // 76.5°
+	// Normal pulses
+	s->addEventAngle(58.5f,  TriggerValue::RISE);
+	s->addEventAngle(103.5f, TriggerValue::FALL);
 
-    for (size_t i = 2; i <= count; i++) {
-        s->addEventAngle(oneCylinder * (i - 0.5), TriggerValue::RISE);
-        s->addEventAngle(oneCylinder * i,         TriggerValue::FALL);
-    }
+	s->addEventAngle(148.5f, TriggerValue::RISE);
+	s->addEventAngle(193.5f, TriggerValue::FALL);
+
+	s->addEventAngle(238.5f, TriggerValue::RISE);
+	s->addEventAngle(283.5f, TriggerValue::FALL);
+
+	s->addEventAngle(328.5f, TriggerValue::RISE);
+	s->addEventAngle(373.5f, TriggerValue::FALL);
+
+	s->addEventAngle(418.5f, TriggerValue::RISE);
+	s->addEventAngle(463.5f, TriggerValue::FALL);
+
+	s->addEventAngle(508.5f, TriggerValue::RISE);
+	s->addEventAngle(553.5f, TriggerValue::FALL);
+
+	s->addEventAngle(598.5f, TriggerValue::RISE);
+	s->addEventAngle(643.5f, TriggerValue::FALL);
+
+	// Signature pulse: short high, then long low after wrap
+	s->addEventAngle(688.5f, TriggerValue::RISE);
+	s->addEventAngle(720.0f, TriggerValue::FALL);
 	
 
 }
