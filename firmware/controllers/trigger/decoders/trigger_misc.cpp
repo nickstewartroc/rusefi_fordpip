@@ -56,27 +56,29 @@ void configureTriTach(TriggerWaveform * s) {
  * based on https://www.w8ji.com/distributor_stabbing.htm
  */
 void configureFordPip(TriggerWaveform * s) {
-    s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Rise);
+     // Stock Ford Signature PIP appears to encode the signature on the FALLING edge.
+    s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Fall);
 
-    // Keep this same for first test; calibrate later with timing light.
+    // Keep stock value for now. Calibrate later with timing light after stable sync.
     s->tdcPosition = 662.5;
 
-    // Your logs show short/normal ~0.70 and long/normal ~1.27.
-    // Make thresholds wide enough to catch that.
-    s->setTriggerSynchronizationGap(0.75);
-    s->setSecondTriggerSynchronizationGap(1.20);
+    // These may need final tuning, but they are closer to your measured logs.
+    s->setTriggerSynchronizationGap(0.80);
+    s->setSecondTriggerSynchronizationGap(1.08);
 
     const int count = 8;
     const angle_t oneCylinder = s->getCycleDuration() / count; // 720 / 8 = 90
 
-    // Observed stock TFI / Signature PIP behavior:
-    // rising edges are evenly spaced, special falling edge occurs early.
+    // Model the observed signal:
+    // - rising edges are evenly spaced
+    // - one falling edge occurs early, making one short high pulse
+    //
+    // Normal pulse: rise at 45°, fall at 90°
+    // Signature pulse: rise at 45°, fall early around 76.5°
 
-    // Special short-high pulse:
-    s->addEventAngle(oneCylinder * 0.5,  TriggerValue::RISE); // 45 deg
-    s->addEventAngle(oneCylinder * 0.85, TriggerValue::FALL); // ~76.5 deg
+    s->addEventAngle(oneCylinder * 0.5,  TriggerValue::RISE); // 45°
+    s->addEventAngle(oneCylinder * 0.85, TriggerValue::FALL); // ~76.5°
 
-    // Remaining seven normal pulses:
     for (int i = 2; i <= count; i++) {
         s->addEventAngle(oneCylinder * (i - 0.5), TriggerValue::RISE);
         s->addEventAngle(oneCylinder * i,         TriggerValue::FALL);
@@ -85,12 +87,12 @@ void configureFordPip(TriggerWaveform * s) {
 }
 
 void configureFordFoxbodyPip(TriggerWaveform * s) {
-	s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Rise);
+	s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Fall);
 
 	s->tdcPosition = 662.5;
 
-	s->setTriggerSynchronizationGap(0.75);
-	s->setSecondTriggerSynchronizationGap(1.20);
+	s->setTriggerSynchronizationGap(0.80);
+	s->setSecondTriggerSynchronizationGap(1.08);
 	/**
 	 * sensor is mounted on distributor but trigger shape is defined in engine cycle angles
 	 */
