@@ -78,6 +78,29 @@ void configureFordPip(TriggerWaveform * s) {
 
 }
 
+void configureFordFoxbodyPip(TriggerWaveform * s) {
+	s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Rise);
+
+	s->tdcPosition = 662.5;
+
+	s->setTriggerSynchronizationGap(0.75);
+	s->setSecondTriggerSynchronizationGap(1.20);
+	/**
+	 * sensor is mounted on distributor but trigger shape is defined in engine cycle angles
+	 */
+	int oneCylinder = s->getCycleDuration() / 8;
+
+	s->addEventAngle(oneCylinder * 0.75, TriggerValue::RISE);
+	s->addEventAngle(oneCylinder, TriggerValue::FALL);
+
+
+	for (int i = 2;i<=8;i++) {
+		s->addEventAngle(oneCylinder * (i - 0.5), TriggerValue::RISE);
+		s->addEventAngle(oneCylinder * i, TriggerValue::FALL);
+	}
+
+}
+
 void configureFordST170(TriggerWaveform * s) {
 	s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::RiseOnly);
 	int width = 10;

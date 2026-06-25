@@ -489,6 +489,10 @@ void TriggerWaveform::initializeTriggerWaveform(operation_mode_e triggerOperatio
 	case trigger_type_e::TT_FORD_TFI_PIP:
 		configureFordPip(this);
 		break;
+		
+	case trigger_type_e::TT_FORD_FOXBODY_PIP:
+		configureFordFoxbodyPip(this);
+		break;
 
 	case trigger_type_e::TT_FORD_ST170:
 		configureFordST170(this);
