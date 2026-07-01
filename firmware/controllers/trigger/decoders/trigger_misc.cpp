@@ -129,78 +129,39 @@ void configureFordPip(TriggerWaveform * s) {
 
 }
 
-void configureFordFoxbodyPip(TriggerWaveform * s) {
-	/*
-	 * Observed stock Ford 5.0 TFI Signature PIP pattern.
-	 *
-	 * Distributor-mounted PIP sensor:
-	 * - 8 pulses per distributor revolution
-	 * - 1 distributor revolution = 720 crank degrees
-	 * - Normal pulse high width ~= 45 crank degrees
-	 * - Normal low width ~= 45 crank degrees
-	 * - Signature pulse high width ~= 31.5 crank degrees
-	 * - Long low gap after signature pulse ~= 58.5 crank degrees
-	 *
-	 * This shape is rotated so the signature pulse FALL is at 720 degrees.
-	 * That matches the EpicEFI Universal Crank table that got closest:
-	 *
-	 * 360-degree table:
-	 *   Rise: 29.25, 74.25, 119.25, 164.25, 209.25, 254.25, 299.25, 344.25
-	 *   Fall: 51.75, 96.75, 141.75, 186.75, 231.75, 276.75, 321.75, 360
-	 *
-	 * Converted to 720 crank degrees by multiplying by 2.
-	 */
+void configureFordFoxbodyPip(TriggerWaveform * s) {	
+	s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Both);
 
-	s->initialize(FOUR_STROKE_CAM_SENSOR, SyncEdge::Rise);
+    // Signature is long-low / short-high ratio:
+    // 58.5 / 31.5 = 1.857
+    s->setTriggerSynchronizationGap2(1.60f, 2.10f);
 
-	/*
-	 * The useful sync event is the RISE after:
-	 *   short high signature pulse -> long low gap -> RISE
-	 *
-	 * Observed ratio from your logs:
-	 *   long low / short high ~= 1.85
-	 *
-	 * Start with a reasonably wide window.
-	 */
-	s->setTriggerSynchronizationGap2(1.60f, 2.10f);
+    // Temporary. Final value must be set with timing light.
+    s->tdcPosition = 0;
 
-	/*
-	 * Starting value only. This affects timing alignment, not whether RPM syncs.
-	 * Once RPM is correct and stable, set fixed timing and adjust trigger offset
-	 * with a timing light.
-	 *
-	 * You can also temporarily keep the existing Ford PIP value if that worked
-	 * better for base timing:
-	 *   s->tdcPosition = 662.5f;
-	 */
-	s->tdcPosition = 0;
+    s->addEventAngle(45.0f,  TriggerValue::RISE);
+    s->addEventAngle(90.0f,  TriggerValue::FALL);
 
-	// Normal pulses
-	s->addEventAngle(58.5f,  TriggerValue::RISE);
-	s->addEventAngle(103.5f, TriggerValue::FALL);
+    s->addEventAngle(135.0f, TriggerValue::RISE);
+    s->addEventAngle(180.0f, TriggerValue::FALL);
 
-	s->addEventAngle(148.5f, TriggerValue::RISE);
-	s->addEventAngle(193.5f, TriggerValue::FALL);
+    s->addEventAngle(225.0f, TriggerValue::RISE);
+    s->addEventAngle(270.0f, TriggerValue::FALL);
 
-	s->addEventAngle(238.5f, TriggerValue::RISE);
-	s->addEventAngle(283.5f, TriggerValue::FALL);
+    s->addEventAngle(315.0f, TriggerValue::RISE);
+    s->addEventAngle(360.0f, TriggerValue::FALL);
 
-	s->addEventAngle(328.5f, TriggerValue::RISE);
-	s->addEventAngle(373.5f, TriggerValue::FALL);
+    s->addEventAngle(405.0f, TriggerValue::RISE);
+    s->addEventAngle(450.0f, TriggerValue::FALL);
 
-	s->addEventAngle(418.5f, TriggerValue::RISE);
-	s->addEventAngle(463.5f, TriggerValue::FALL);
+    s->addEventAngle(495.0f, TriggerValue::RISE);
+    s->addEventAngle(540.0f, TriggerValue::FALL);
 
-	s->addEventAngle(508.5f, TriggerValue::RISE);
-	s->addEventAngle(553.5f, TriggerValue::FALL);
+    s->addEventAngle(585.0f, TriggerValue::RISE);
+    s->addEventAngle(630.0f, TriggerValue::FALL);
 
-	s->addEventAngle(598.5f, TriggerValue::RISE);
-	s->addEventAngle(643.5f, TriggerValue::FALL);
-
-	// Signature pulse: short high, then long low after wrap
-	s->addEventAngle(688.5f, TriggerValue::RISE);
-	s->addEventAngle(720.0f, TriggerValue::FALL);
-	
+    s->addEventAngle(675.0f, TriggerValue::RISE);
+    s->addEventAngle(706.5f, TriggerValue::FALL);
 
 }
 
